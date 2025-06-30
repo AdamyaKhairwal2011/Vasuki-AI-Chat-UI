@@ -1,0 +1,10 @@
+<svg width="100" height="100" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- Frame -->
+  <rect x="2" y="2" width="20" height="20" rx="2" ry="2" stroke="white" stroke-width="1.5" fill="none"/>
+
+  <!-- Sun -->
+  <circle cx="7" cy="7" r="2" fill="white"/>
+
+  <!-- Mountains -->
+  <path d="M4 18L10 10L14 14L20 8V18H4Z" fill="white"/>
+</svg>

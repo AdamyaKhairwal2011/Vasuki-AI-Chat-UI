@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>astra UI Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #161618;
+      color: #f0f0f0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: row;
+    }
+
+    .sidebar {
+      width: 260px;
+      background-color: #121212;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid #1e1e1e;
+    }
+
+    .sidebar .top {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar .search {
+      padding: 10px;
+      border: 1px solid #333;
+      background: #1a1a1a;
+      border-radius: 8px;
+      color: #ccc;
+    }
+
+    .sidebar .menu-item {
+      padding: 10px 0;
+      color: #ccc;
+      cursor: pointer;
+    }
+
+    .sidebar .menu-item:hover {
+      color: #fff;
+    }
+
+    .sidebar .history {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .sidebar .profile {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      margin-top: auto;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .center-box {
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .astra-logo {
+      font-size: 40px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: white;
+    }
+
+    .input-bar {
+      background-color: #2727274d;
+      backdrop-filter: blur(8px);
+      border: 1px solid #333;
+      border-radius: 18px;
+      padding: 20px;
+      text-align: left;
+      color: #ccc;
+      font-size: 16px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-bar input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #ccc;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      font-size: 14px;
+      gap: 8px;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar button {
+      background-color: #1a1a1a00;
+      border: 1px solid #333;
+      padding: 6px 12px;
+      border-radius: 14px;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .toolbar button:hover {
+      background-color: #2a2a2a;
+      color: white;
+    }
+
+    .bottom-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .bottom-buttons button {
+      background-color: #18181800;
+      border: 1px solid #333;
+      padding: 8px 14px;
+      border-radius: 16px;
+      color: #ccc;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .bottom-buttons button:hover {
+      background-color: #2a2a2a;
+      color: white;
+    }
+
+    .go-super {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background-color: #101010;
+      border: 1px solid #333;
+      padding: 10px 14px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .go-super button {
+      background-color: white;
+      color: black;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .go-super button:hover {
+      background-color: #ddd;
+    }
+
+    .hidden {
+        opacity: 0;
+    }
+    .mess-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 40%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-left: 30%;
+      max-width: 60%;
+      max-height: 60vh;
+      overflow: auto;
+    }
+
+    .message {
+      padding: 10px 15px;
+      word-break: break-word;
+    }
+
+    .custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+}
+
+.custom-checkbox input {
+  display: none;
+}
+
+.custom-checkbox .checkmark {
+  width: 18px;
+  height: 18px;
+  background-color: rgb(19, 19, 19);
+  border: 2px solid #444444;
+  border-radius: 4px;
+  position: relative;
+}
+
+.custom-checkbox input:checked + .checkmark::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0px;
+  width: 5px;
+  height: 10px;
+  border: solid rgb(124, 124, 124);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox .checkbox-label {
+  display: flex;
+  flex-direction: row;
+  line-height: 1.1;
+}
+
+
+    /* 📱 Mobile Responsive */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        vertical-align: middle;
+        height: 100vh;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 10px;
+        gap: 20px;
+        border-right: none;
+        border-bottom: 1px solid #1e1e1e;
+      }
+
+      .sidebar .top {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 10px;
+        overflow-x: auto;
+      }
+
+      .sidebar .history,
+      .sidebar .profile {
+        display: none;
+      }
+
+      .main {
+        padding: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        vertical-align: middle;
+        height: 100vh;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .go-super {
+        position: static;
+        margin-top: 20px;
+        justify-content: center;
+      }
+
+      .mess-area {
+        min-width: 70vw;
+        max-width: 70vw;
+        margin-left: 1vw;
+        overflow: hidden;
+      }
+
+      .message {
+        max-width: 60vw;
+      }
+
+      .user {
+        max-width: 100%;
+      }
+
+      .generated {
+        width: 90%;
+      }
+    }
+    .user {
+      background-color: #4b4b4b54;
+      backdrop-filter: blur(8px);
+      border-radius: 20px 0px 20px 20px;
+      float: right;
+      max-width: 60%;
+      margin-left: 40%;
+    }
+
+    #bg-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+
+    .generated {
+        width: 500px;
+        border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+  <div class="main">
+    <div class="mess-area hidden">
+      <div class="astra-logo" style="width: 100%; text-align: center;"><img src="./Vasuki.png" alt="" width="350px" height="50px"></div>
+    </div>
+    <div class="center-box">
+      <div class="astra-logo" id="logo"><img src="./Vasuki.png" alt="" width="45%" height="50px"></div>
+
+      <div class="input-bar">
+        <input type="text" placeholder="What do you want to know?" id="query"/>
+        <br><br>
+        <div class="toolbar">
+<div class="toolbar-left">
+  <button onclick="document.getElementById('query').value = 'search '">WebSearch +</button>
+
+<label class="custom-checkbox">
+  <input type="checkbox" id="think" />
+  <span class="checkmark"></span>
+  <div class="checkbox-label">
+    <span>Deep</span>
+    <span>Think</span>
+  </div>
+</label>
+
+
+    </label>
+    </div>
+
+          <div class="toolbar-right">
+            <button>Astra 5o</button>
+            <button id="getAnswer">↑</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-buttons">
+        <button onclick="fetchNews()"><img src="./news.svg" style="position: absolute;" alt="" width="15px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Latest News</button>
+        <button onclick="document.getElementById('query').value = 'solve  '"><img src="./math.svg" style="position: absolute;" alt="" width="15px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Solve A Math Problem</button>
+        <button onclick="document.getElementById('query').value = 'explain '"><img src="./page.svg" style="position: absolute;" alt="" width="15px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Explain</button>
+        <button onclick="document.getElementById('query').value = 'generate image '"><img src="./img.svg" style="position: absolute;" alt="" width="15px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Generate Image</button>
+    </div>
+
+      <div class="go-super">
+        <span>⚡ Superastra</span>
+        <button>Go Super</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import AstraAI from './source_code_astra/index.js'
+
+    const astra = new AstraAI({bot_name: "Vasuki", purpose: "personal", tasks: "chat, research and more."})
+    let logo = document.getElementById('logo');
+    let buttons = document.querySelector('.bottom-buttons');
+    let inputBar = document.querySelector('.input-bar');
+    let messageArea = document.querySelector('.mess-area');
+
+    document.getElementById('getAnswer').addEventListener('click', async () => {
+      let userInput = document.getElementById('query').value;
+      logo.style.display = 'none';
+      buttons.style.display = 'none'
+      inputBar.style.marginTop = '60vh'
+      messageArea.classList.remove('hidden')
+      if (userInput.trim() === '') {
+        alert('Please enter a query.');
+        return;
+      } else {
+        document.querySelector('.mess-area').innerHTML += `<div class="message user"><p>${userInput}</p></div>`;
+        document.getElementById('query').value = '';
+        astra.chat(userInput, {bot_name: "Vasuki", purpose: "personal", tasks: "chat, research and more."}).then((response) => {
+            response = response.replaceAll('e.g.','eg').replaceAll('i.e.','ie')
+            if (document.getElementById('think').checked) {
+              messageArea.innerHTML += `<div class="message bot"><p>${response.split(".")[0]+'. '+response.split(".")[1]+'. '+response.split(".")[3]+'.'}</p></div>`.replaceAll('undefined', '');
+            } else {
+                if(userInput.includes('generate image')) {
+                    messageArea.innerHTML += `<div class="message bot"><p>${response.replaceAll(',','.')}</p></div>`;
+                } else {
+                    messageArea.innerHTML += `<div class="message bot"><p>${response.split(".")[0]+'.'}</p></div>`;
+                }
+            }
+        })
+      }
+
+    });
+
+    const fetchNews = () => {
+        document.getElementById('query').value = 'Please give me the latest news';
+    }
+
+    window.fetchNews = fetchNews;
+
+
+        // --- Three.js Background Animation ---
+    let scene, camera, renderer, points;
+    let mouseX = 0, mouseY = 0;
+    
+    const initThree = () => {
+        const canvas = document.getElementById('bg-canvas');
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
+        camera.position.z = 250;
+        
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        const particles = 5000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particles * 3);
+        
+        for(let i=0; i < positions.length; i+=3) {
+            positions[i] = (Math.random() - 0.5) * 1000;
+            positions[i+1] = (Math.random() - 0.5) * 1000;
+            positions[i+2] = (Math.random() - 0.5) * 1000;
+        }
+        
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        
+        const material = new THREE.PointsMaterial({
+            size: 1.5,
+            color: '#7c7c7c', // indigo-500
+            sizeAttenuation: true,
+            transparent: true,
+            opacity: 0.7,
+            blending: THREE.AdditiveBlending
+        });
+        
+        points = new THREE.Points(geometry, material);
+        scene.add(points);
+        
+        animate();
+    };
+    
+    const animate = () => {
+        requestAnimationFrame(animate);
+        
+        // Animate particles
+        points.rotation.x += 0.0001;
+        points.rotation.y += 0.0002;
+        
+        // Mouse follow effect
+        camera.position.x += (mouseX - camera.position.x) * 0.05;
+        camera.position.y += (-mouseY - camera.position.y) * 0.05;
+        camera.lookAt(scene.position);
+        
+        renderer.render(scene, camera);
+    };
+    
+    const onWindowResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    
+    const onMouseMove = (event) => {
+        mouseX = (event.clientX - window.innerWidth / 2);
+        mouseY = (event.clientY - window.innerHeight / 2);
+    };
+    
+    window.addEventListener('resize', onWindowResize, false);
+    document.addEventListener('mousemove', onMouseMove, false);
+    
+    initThree();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vasuki - The Next Generation AI</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="./source_code_astra/index.js" type="module">
+    </script>
+
+    <style>
+
+        @font-face {
+            font-family: 'google-sans'; /* This is the name you'll use in your CSS */
+            src: url('./4UaRrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iq2vgCI.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap; /* Optional: Controls how font is displayed while loading */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* slate-950 */
+            color: #E2E8F0; /* slate-200 */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.5); /* slate-900 with opacity */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+             border-color: rgba(99, 102, 241, 0.5); /* indigo-400 */
+             transform: translateY(-8px) scale(1.02);
+             box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Hero canvas for Three.js */
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Scroll-triggered animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.6s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F172A; /* slate-900 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4F46E5; /* indigo-600 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366F1; /* indigo-500 */
+        }
+
+        /* Blinking cursor for typing effect */
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background-color: #6366F1;
+            animation: blink 1s infinite;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .glow-button {
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .glow-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 40%);
+            transform: translate(-50%, -50%);
+            transition: 0.3s;
+            opacity: 0;
+        }
+        .glow-button:hover::before {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .header-text {
+            font-family: 'google-sans', 'sans-serif';
+        }
+        
+        .img-desc {
+            width: 500px;
+            float: right;
+        }
+
+        #contact {
+            background: url('./triangular-warped-wireframe-background_629685-32313.avif');
+            background-size: cover;
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header id="header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold text-white tracking-wider flex items-center">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="mr-2 text-indigo-400">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    <a href="#">Vāsuki.AI</a>
+                </div>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors duration-300">Home</a>
+                    <a href="#about" class="text-slate-300 hover:text-white transition-colors duration-300">About</a>
+                    <a href="#demo" class="text-slate-300 hover:text-white transition-colors duration-300">Demo</a>
+                    <a href="#features" class="text-slate-300 hover:text-white transition-colors duration-300">Features</a>
+                    <a href="#contact" class="text-slate-300 hover:text-white transition-colors duration-300">Contact</a>
+                    <a href="#api-docs" class="text-slate-300 hover:text-white transition-colors duration-300">Documentation</a>
+                </nav>
+                <a href="./chat.html" class="hidden md:inline-block bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 glow-button">
+                    Try Now
+                </a>
+                <button id="mobile-menu-button" class="md:hidden text-white z-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/95 backdrop-blur-sm fixed inset-0 z-40 pt-20">
+            <div class="flex flex-col items-center justify-center h-full space-y-8">
+                 <a href="#about" class="text-2xl text-slate-300 hover:text-white transition-colors duration-300">About</a>
+                 <a href="#demo" class="text-2xl text-slate-300 hover:text-white transition-colors duration-300">Demo</a>
+                 <a href="#features" class="text-2xl text-slate-300 hover:text-white transition-colors duration-300">Features</a>
+                 <a href="#contact" class="text-2xl text-slate-300 hover:text-white transition-colors duration-300">Contact</a>
+                 <a href="#api-docs" class="text-2xl text-slate-300 hover:text-white transition-colors duration-300">Documentation</a>
+                 <a href="#demo" class="mt-8 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 glow-button">
+                    Try Now
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="relative h-screen flex items-center justify-center overflow-hidden">
+            <canvas id="bg-canvas"></canvas>
+            <div class="absolute inset-0 bg-black/40 z-10"></div>
+            <div class="container mx-auto px-6 text-center z-20">
+                <h1 class="text-4xl md:text-3xl lg:text-7xl text-white mb-4 leading-tight reveal heading-text">
+                    Presenting <span class="text-indigo-400">Vāsuki.AI</span>
+                </h1>
+                <p class="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto mb-8 leading-relaxed reveal" style="transition-delay: 200ms;">
+                    A new era of artificial intelligence. Creative, analytical, and ready to build the future with you.
+                </p>
+                <div class="flex justify-center space-x-4 reveal" style="transition-delay: 400ms;">
+                    <a href="#demo" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-indigo-600/30 glow-button">
+                        Experience The Demo
+                    </a>
+                    <a href="#features" class="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 border border-white/20">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-24 sm:py-32">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">The Evolution of Intelligence</h2>
+                    <p class="text-slate-400 mt-4 max-w-2xl mx-auto">
+                        Vasuki is more than a model; it's a cognitive architecture. Trained on an unprecedented scale of data, it masters language, logic, and creativity.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="glass-card p-8 rounded-xl reveal">
+                        <div class="bg-indigo-900/50 text-indigo-400 rounded-lg w-12 h-12 flex items-center justify-center mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></div>
+                        <h3 class="text-xl font-bold text-white mb-2">Complex Reasoning</h3>
+                        <p class="text-slate-400">Deconstructs multifaceted problems, finding patterns and solutions beyond human capability.</p>
+                    </div>
+                    <div class="glass-card p-8 rounded-xl reveal" style="transition-delay: 200ms;">
+                         <div class="bg-indigo-900/50 text-indigo-400 rounded-lg w-12 h-12 flex items-center justify-center mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v5"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M5 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M5 12v-1"/></svg></div>
+                        <h3 class="text-xl font-bold text-white mb-2">Creative Synthesis</h3>
+                        <p class="text-slate-400">Generates novel ideas, art, and narratives, blending styles and concepts with originality.</p>
+                    </div>
+                    <div class="glass-card p-8 rounded-xl reveal" style="transition-delay: 400ms;">
+                        <div class="bg-indigo-900/50 text-indigo-400 rounded-lg w-12 h-12 flex items-center justify-center mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></div>
+                        <h3 class="text-xl font-bold text-white mb-2">Omni-Code Fluency</h3>
+                        <p class="text-slate-400">Writes, debugs, and translates across dozens of languages, from Python to Rust.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo Section -->
+        <section id="demo" class="py-24 sm:py-32 bg-slate-900/50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">Converse with the Future</h2>
+                    <p class="text-slate-400 mt-4 max-w-2xl mx-auto">
+                        Challenge Vasuki. Ask a question, give a command, or propose a problem. Witness its power firsthand.
+                    </p>
+                </div>
+                
+                <div class="max-w-4xl mx-auto glass-card rounded-xl p-4 sm:p-8 shadow-2xl reveal">
+                    <div class="bg-slate-900 rounded-lg">
+                        <div class="flex items-center p-3 border-b border-slate-700">
+                             <div class="flex space-x-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
+                             <p class="text-sm text-slate-400 mx-auto font-mono">/vasuki/live_inference</p>
+                        </div>
+                        <div class="p-6">
+                            <label for="prompt" class="text-sm font-semibold text-slate-300">Your Prompt:</label>
+                            <div class="mt-2 flex items-end space-x-3">
+                                <textarea id="prompt" rows="1" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none" placeholder="e.g., Explain quantum entanglement in simple terms..."></textarea>
+                                <button id="generate-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-5 rounded-lg transition-all duration-300 flex items-center justify-center flex-shrink-0 transform hover:scale-105 glow-button">
+                                    <svg id="generate-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="m5 19 7-7 7 7"/></svg>
+                                    <div id="loading-spinner" class="hidden animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                                </button>
+                            </div>
+                            <div class="mt-8">
+                                <label class="text-sm font-semibold text-slate-300">Vasuki's Response:</label>
+                                <div class="w-full bg-black/30 border border-slate-800 rounded-lg p-4 min-h-[150px] text-slate-300 font-mono text-sm">
+                                    <span id="response-text"></span><span id="typing-cursor" class="hidden"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-24 sm:py-32">
+             <div class="container mx-auto px-6">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">Engineered for Tomorrow</h2>
+                    <p class="text-slate-400 mt-4 max-w-2xl mx-auto">
+                        Vasuki's architecture is built for scalability, seamless integration, and perpetual evolution.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="reveal">
+                        <img src="./aside.webp" alt="Abstract illustration of scalable infrastructure" class="rounded-xl shadow-l g shadow-indigo-600/30 img-desc reveal">
+                    </div>
+                    <div class="space-y-8 reveal" style="transition-delay: 200ms;">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-900/50 text-indigo-400 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.44.25a2 2 0 0 1-2 1.73V11a2 2 0 0 0 2 2h.44a2 2 0 0 1 1.73 1l.25.44a2 2 0 0 1 0 2.22l-.25.44a2 2 0 0 1-1.73 1H4a2 2 0 0 0-2 2v.78a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.44-.25a2 2 0 0 1 2-1.73V13a2 2 0 0 0-2-2h-.44a2 2 0 0 1-1.73-1l-.25-.44a2 2 0 0 1 0-2.22l.25-.44a2 2 0 0 1 1.73-1H12a2 2 0 0 0 2-2V4.22a2 2 0 0 0-2-2.22z"/><path d="M19.07 4.93a10 10 0 0 0-16.25 11.66"/></svg></div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-bold text-white">Hyperscale Architecture</h4>
+                                <p class="text-slate-400 mt-1">Deploy on a distributed framework capable of handling billions of queries with consistent low latency.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-900/50 text-indigo-400 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-1.15-.44l-2.43-4.11a1 1 0 0 0-1.62-.44l-2 2.67a1 1 0 0 1-1.62-.44L2.05 13a1 1 0 0 1 .44-1.15C6.5 10.5 9 8 9 3c0-1 1-2 2-2s2 1 2 2c0 5 3.5 7.5 7.66 8.95a1 1 0 0 1 .34 1.05z"/></svg></div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-bold text-white">Developer-First API</h4>
+                                <p class="text-slate-400 mt-1">Integrate Vasuki's capabilities into any application with a clean, well-documented, and powerful API.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<section id="api-docs" class="py-24 sm:py-32 bg-black">
+  <div class="container mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">Vāsuki.AI API Documentation</h2>
+      <p class="text-slate-400 mt-4 max-w-2xl mx-auto">
+        Harness the full power of Astra-AI through simple, intuitive endpoints. Integrate intelligence into your apps with ease.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Authentication -->
+      <div class=" p-8 rounded-xl reveal">
+        <div class="bg-indigo-900/50 text-indigo-400 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 11c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4"/>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8"/>
+          </svg>
+        </div>
+    <h3 class="text-xl font-bold text-white mb-2">Note from the Developer</h2>
+    
+    <p class="text-slate-400 text-sm leading-relaxed">
+      Astra-AI is not just code — it’s an expression of vision, creativity, and relentless pursuit of artificial general intelligence. Built from the ground up with passion and purpose, it is meant to be a modular, extensible, and offline-friendly framework that blends reasoning, language, and cognition into something truly empowering. As it evolves, Astra will continue to push boundaries — but responsibly, ethically, and with you, the builder, at the center of its design.
+    </p>
+    
+    <p class="text-slate-400 text-sm leading-relaxed">
+      I welcome your feedback, your experiments, and your wildest ideas. Whether you're building for curiosity, research, revolution — or your own empire — this project is for you.
+    </p>
+    <br><br>
+    <p class="text-slate-500 text-xs italic">
+      — Developed with 💡 and infinite coffee by Adamya Khairwal
+    </p>
+    
+      </div>
+
+      <!-- Chat Completion -->
+      <div class=" p-8 rounded-xl reveal" style="transition-delay: 200ms;">
+        <div class="bg-indigo-900/50 text-indigo-400 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16v16H4z" />
+            <path d="M8 8h8v8H8z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">JSdelivr API (Public)</h3>
+        <p class="text-slate-400 text-sm">
+            Access the Astra-AI API via JSdelivr for fast, global delivery. Use the following endpoint to get started.
+        </p>
+        <div class="mt-4 text-slate-400 text-xs bg-slate-800/50 p-2 rounded"><code>
+https://cdn.jsdelivr.net/npm/astra-ai@1.0.23/index.min.js</code>
+        </div> <br>
+                <p class="text-slate-400 text-sm">
+            Or use NodeJS (NPM) to install the Global CLI or package
+        </p>
+
+                <div class="mt-4 text-slate-400 text-xs bg-slate-800/50 p-2 rounded"><code>npm install -g @adamya_khairwal/astra-cli <br> astra-dir [project_name] <br>cd [project_name] <br>node index</code>
+                </code>
+        </div>
+<br>
+                        <p class="text-slate-400 text-sm">
+            You can download the NPM package from the NPM registry as well.
+        </p>
+
+
+                <div class="mt-4 text-slate-400 text-xs bg-slate-800/50 p-2 rounded"><code>
+npm install astra-ai</code>
+        </div>
+        <br>
+                                <p class="text-slate-400 text-sm">
+            And write this code in the index.js file.
+        </p>
+                        <div class="mt-4 text-slate-400 text-xs bg-slate-800/50 p-2 rounded"><pre><code>
+import AstraAI from 'astra-ai';
+import readline from 'readline'
+
+let attitude = {
+    bot_name: "astra",
+    purpose: "personal",
+    tasks: "Hobbies, interests or just chat for fun"
+};
+
+let astra = new AstraAI(attitude);
+
+let rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+  
+function ask() {
+    console.log("\n")
+    rl.question('- Ask Vasuki Anything:- ', ques => {
+    astra.chat(ques,attitude)
+        .then((response) => {
+            console.log(response.split(".")[0]);
+            ask()
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+    });
+}
+
+ask()
+
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Model Capabilities -->
+      <div class="p-8 rounded-xl reveal" style="transition-delay: 400ms;">
+        <div class="bg-indigo-900/50 text-indigo-400 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12h18M12 3v18" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Capabilities</h3>
+        <p class="text-slate-400 text-sm">
+          Vāsuki.AI supports logic, natural language, programming, math, summarization, and even personality-based tuning.
+        </p>
+        <ul class="text-xs text-slate-400 list-disc list-inside mt-2 space-y-1">
+          <li>Customizable attitude & bot persona</li>
+          <li>Multi-format prompt input/output</li>
+          <li>Online query web search</li>
+          <li>Realtime weather, date, time, news and scholarpedia scraped data.</li>
+          <li>Machine learning generative model trained over 800,000+ tokens.</li>
+          <li>Free web research mode</li>
+          <li>Super smooth implementation</li>
+        </ul>
+        <br>
+        <h3 class="text-xl font-bold text-white mb-2">Feedbacks & Complaints</h3>
+        <p class="text-slate-400 text-sm">In case of feedbacks and complaints, write to <u><a href="mailto:codeclutch.adamyrarao@gmail.com">codeclutch.adamyarao@gmail.com</a></u> or <u><a href="mailto:anuradhamaheshwari48@gmail.com">anuradhamaheshwari48@gmail.com</a></u></p>
+
+        
+        <br>
+        <h3 class="text-xl font-bold text-white mb-2">Terms & Conditions</h3>
+            <div class="space-y-6 text-slate-400 text-sm leading-relaxed">
+      <div>
+        <h3 class="text-white text-lg font-semibold mb-1">1. Acceptance of Terms</h3>
+        <p>By installing or using Astra-AI, you agree to be bound by these terms. If you disagree, do not use the software.</p>
+      </div>
+
+      <div>
+        <h3 class="text-white text-lg font-semibold mb-1">3. Usage Restrictions</h3>
+        <p>You may not use Astra-AI for unlawful purposes or in critical systems without appropriate certification. Reverse engineering is prohibited.</p>
+      </div>
+
+      <div>
+        <h3 class="text-white text-lg font-semibold mb-1">4. Data & Privacy</h3>
+        <p>Astra-AI processes inputs locally or via APIs. It does not store user data by default. Ensure compliance with privacy regulations in your implementation.</p>
+      </div>
+
+      <div>
+        <h3 class="text-white text-lg font-semibold mb-1">5. Intellectual Property</h3>
+        <p>The architecture and underlying logic of Astra-AI are protected. Redistribution without consent is not allowed unless specified by the license.</p>
+      </div>
+
+      <div>
+        <h3 class="text-white text-lg font-semibold mb-1">8. Updates and Termination</h3>
+        <p>These terms may change over time. Continued use of Astra-AI implies acceptance of the latest terms. The software may be updated or discontinued without notice.</p>
+      </div>
+
+      <div>
+        <h3 class="text-white text-lg font-semibold mb-1">9. Attribution</h3>
+        <p>Public or commercial use of Astra-AI may include visible attribution, especially when used in published applications or services.</p>
+      </div>
+    </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 sm:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <div class="reveal">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">Join the AI Revolution</h2>
+                    <p class="text-slate-400 mt-4 max-w-2xl mx-auto">
+                        Become an early partner and shape the future of artificial intelligence. Let's build something extraordinary together.
+                    </p>
+                    <div class="mt-8">
+                         <a href="mailto:codeclutch.adamyarao@gmail.com" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-indigo-600/30 inline-block glow-button">
+                            Request Early Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+<footer class="bg-slate-900/50 border-t border-slate-800">
+  <div class="container mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row items-center justify-between">
+      
+      <div class="text-slate-400 mb-4 md:mb-0">
+        &copy; <span id="year"></span> Vasuki Project. All rights reserved.
+      </div>
+
+      <div class="flex space-x-6">
+        
+        <!-- GitHub -->
+        <a href="https://github.com/adamyakhairwal2011" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+            <path d="M9 18c-4.51 2-5-2-7-2" />
+          </svg>
+        </a>
+
+        <!-- LinkedIn -->
+        <a href="https://in.linkedin.com/in/adamya-khairwal-8b51b235b" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-6a2 2 0 0 0-4 0v6h-4v-7a6 6 0 0 1 6-6z" />
+            <rect x="2" y="9" width="4" height="12" />
+            <circle cx="4" cy="4" r="2" />
+          </svg>
+        </a>
+
+        <!-- Website -->
+        <a href="https://adamya.netlify.app" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Set current year in footer ---
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            // --- Mobile Menu ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+            
+            mobileMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('hidden');
+                mobileMenuButton.innerHTML = mobileMenu.classList.contains('hidden') 
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>`
+                    : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>`;
+            });
+            
+            mobileMenuLinks.forEach(link => {
+                link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+            });
+
+            // --- Sticky Header ---
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('bg-slate-950/80', window.scrollY > 50);
+                header.classList.toggle('backdrop-blur-sm', window.scrollY > 50);
+            });
+
+            // --- Scroll Animations ---
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => observer.observe(el));
+
+            // --- Auto-resize Textarea ---
+            const promptTextarea = document.getElementById('prompt');
+            promptTextarea.addEventListener('input', () => {
+                promptTextarea.style.height = 'auto';
+                promptTextarea.style.height = `${promptTextarea.scrollHeight}px`;
+            });
+
+            // --- Live Demo Typing Effect ---
+
+            
+
+            
+            // --- Three.js Background Animation ---
+            let scene, camera, renderer, points;
+            let mouseX = 0, mouseY = 0;
+            
+            const initThree = () => {
+                const canvas = document.getElementById('bg-canvas');
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
+                camera.position.z = 250;
+                
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                
+                const particles = 5000;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(particles * 3);
+                
+                for(let i=0; i < positions.length; i+=3) {
+                    positions[i] = (Math.random() - 0.5) * 1000;
+                    positions[i+1] = (Math.random() - 0.5) * 1000;
+                    positions[i+2] = (Math.random() - 0.5) * 1000;
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                
+                const material = new THREE.PointsMaterial({
+                    size: 1.5,
+                    color: 0x6366F1, // indigo-500
+                    sizeAttenuation: true,
+                    transparent: true,
+                    opacity: 0.7,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                points = new THREE.Points(geometry, material);
+                scene.add(points);
+                
+                animate();
+            };
+            
+            const animate = () => {
+                requestAnimationFrame(animate);
+                
+                // Animate particles
+                points.rotation.x += 0.0001;
+                points.rotation.y += 0.0002;
+                
+                // Mouse follow effect
+                camera.position.x += (mouseX - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+                
+                renderer.render(scene, camera);
+            };
+            
+            const onWindowResize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            };
+            
+            const onMouseMove = (event) => {
+                mouseX = (event.clientX - window.innerWidth / 2);
+                mouseY = (event.clientY - window.innerHeight / 2);
+            };
+            
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+            
+            initThree();
+
+            // Smooth scroll for anchor links
+             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script type="module">
+import AstraAI from './source_code_astra/index.js';
+
+const generateBtn = document.getElementById('generate-btn');
+const generateIcon = document.getElementById('generate-icon');
+const loadingSpinner = document.getElementById('loading-spinner');
+const responseText = document.getElementById('response-text');
+const typingCursor = document.getElementById('typing-cursor');
+const promptInput = document.getElementById('prompt');
+
+let isGenerating = false;
+let typingInterval;
+
+const typeWriter = (text, i = 0) => {
+    if (i < text.length) {
+        responseText.innerHTML += text.charAt(i);
+        typingInterval = setTimeout(() => typeWriter(text, i + 1), 25);
+    } else {
+        typingCursor.classList.add('hidden');
+        isGenerating = false;
+        generateBtn.disabled = false;
+        generateIcon.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+    }
+};
+
+generateBtn.addEventListener('click', () => {
+    if (isGenerating) return;
+
+    isGenerating = true;
+    generateBtn.disabled = true;
+    generateIcon.classList.add('hidden');
+    loadingSpinner.classList.remove('hidden');
+    clearTimeout(typingInterval);
+    responseText.textContent = '';
+    typingCursor.classList.remove('hidden');
+
+    const attitude = {
+        bot_name: "Vastu",
+        purpose: "personal",
+        tasks: "Hobbies, interests or just chat for fun"
+    };
+
+    const astra = new AstraAI(attitude);
+    const promptText = promptInput.value.trim();
+
+    astra.chat(promptText, attitude)
+        .then((response) => {
+            if (!response) throw new Error("Empty response");
+
+            // Sanitize response
+            response = response
+                .replace(/<[^>]*>/g, '')         // Strip HTML tags
+                .replace(/&nbsp;/g, ' ')         // Replace &nbsp;
+                .replace(/[\n\r]+/g, ' ')        // Strip newlines
+                .replace(/undefined|null/gi, '') // Remove literal "undefined" or "null"
+
+            console.log("AstraAI Response:", response);
+
+            setTimeout(() => {
+                // Limit to first two sentences if not weather-related
+                let output = response;
+                if (!promptText.includes("weather")) {
+                    const parts = response.split(".");
+                    if (parts.length >= 2) {
+                        output = parts[0].trim() + ".";
+                    }
+                }
+                typeWriter(output);
+            }, 500);
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            responseText.textContent = "⚠️ Something went wrong. Please try again.";
+            typingCursor.classList.add('hidden');
+            isGenerating = false;
+            generateBtn.disabled = false;
+            generateIcon.classList.remove('hidden');
+            loadingSpinner.classList.add('hidden');
+        });
+});
+
+    </script>
+</body>
+</html>
